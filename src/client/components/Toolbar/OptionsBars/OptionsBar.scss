@@ -1,0 +1,165 @@
+.options-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 12px;
+  z-index: 1000;
+  display: none;
+  pointer-events: none;
+
+  &--visible {
+    display: flex;
+  }
+
+  &__tools {
+    margin: 0 auto;
+    background: $black;
+    pointer-events: all;
+    box-shadow: $toolbar-shadow;
+    display: flex;
+  }
+
+  &__tool {
+    height: 56px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid $black-hover;
+
+    .form-range {
+      width: 90px;
+
+      .is-touch & {
+        width: 120px;
+      }
+    }
+
+    .options-bar__brush-size-input {
+      max-width: 80px;
+
+      .is-touch & {
+        display: none;
+
+        &:first-child + .form-group {
+          margin-left: 0;
+        }
+      }
+    }
+
+    .form-group {
+      margin: 0 0 0 12px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+  }
+
+  &-brush {
+    &__color {
+      position: relative;
+    }
+
+    &__color-button {
+      appearance: none;
+      background: transparent;
+      display: inline-block;
+      height: 44px;
+      width: 44px;
+      border: none;
+      padding: 0;
+      position: relative;
+      cursor: pointer;
+
+      &:before {
+        content: '';
+        background: $white;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 32px;
+        height: 32px;
+        margin-top: -16px;
+        margin-left: -16px;
+        border-radius: 50%;
+      }
+
+      &:focus {
+        outline: 0;
+
+        &:before {
+          box-shadow: 0 0 0 4px rgba(lighten($black-hover, 40%), 0.2);
+        }
+      }
+
+      &-label {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin-top: -10px;
+        margin-left: -10px;
+        border-radius: 50%;
+      }
+    }
+
+    &__color-menu {
+      width: 194px;
+      background: $white;
+      box-shadow: $toolbar-shadow;
+      border-radius: 4px;
+      border: 1px solid lighten($black-hover, 50%);
+      position: absolute;
+      left: -8px;
+      bottom: 100%;
+      margin-bottom: 4px;
+    }
+
+    &__color-menu-list {
+      list-style: none;
+      margin: 0;
+      padding: 8px;
+      display: flex;
+      flex-flow: row wrap;
+    }
+
+    &__color-menu-list-item {
+      max-width: 25%;
+      flex: 0 0 25%;
+
+      .options-bar-brush__color-button {
+        border-radius: 4px;
+        transition: background 0.1s ease-in-out;
+
+        &:hover,
+        &:focus {
+          background: lighten($black-hover, 65%);
+        }
+
+        &:before {
+          background: transparent;
+        }
+
+        &:focus {
+          &:before {
+            box-shadow: none;
+          }
+        }
+      }
+
+      .options-bar-brush__color-button-label {
+        width: 26px;
+        height: 26px;
+        margin-top: -13px;
+        margin-left: -13px;
+      }
+    }
+  }
+}

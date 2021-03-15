@@ -1,0 +1,39 @@
+<button class="toolbar__button" type="button" data-tool="eraser" title="Eraser" aria-label="Eraser">
+  <svg aria-hidden="true">
+    <use xlink:href="#eraser-solid"></use>
+  </svg>
+</button>
+<div id="options-bar-eraser" class="options-bar option-bar-eraser">
+  <div class="options-bar__tools">
+    <div class="options-bar__tool">
+      <div class="form-group form-number options-bar__brush-size-input" data-min="1" data-max="200" data-step="1">
+        <input
+          id="options-bar-eraser__input"
+          class="form-control"
+          type="text"
+          pattern="[1-9][0-9]*"
+          inputmode="numeric"
+          aria-label="Set Eraser Size"
+        >
+        <button type="button" class="form-number-button-inc">
+          Increment
+        </button>
+        <button type="button" class="form-number-button-dec">
+          Decrement
+        </button>
+      </div>
+      <div class="form-group">
+        <input
+          id="options-bar-eraser__range"
+          class="form-range"
+          type="range"
+          min="1"
+          max="200"
+          step="1"
+          value="20"
+          aria-label="Set Eraser Size"
+        >
+      </div>
+    </div>
+  </div>
+</div>

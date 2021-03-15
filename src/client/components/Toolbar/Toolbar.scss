@@ -1,0 +1,56 @@
+.toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 9999;
+  width: 56px;
+  background: $black;
+  color: $white;
+  box-shadow: $toolbar-shadow;
+
+  &__button {
+    position: relative;
+    appearance: none;
+    background: $black;
+    color: $white;
+    border: none;
+    border-bottom: 1px solid $black-hover;
+    width: 56px;
+    height: 56px;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    z-index: 1;
+
+    &:hover,
+    &:focus {
+      background: $black-hover;
+    }
+
+    &:focus {
+      outline: 0;
+      z-index: 2;
+    }
+
+    &.active {
+      background: $red;
+      border-bottom-color: $red;
+
+      &:hover,
+      &:focus {
+        background: $red-hover;
+      }
+    }
+
+    svg {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      top: 50%;
+      left: 50%;
+      margin-top: -14px;
+      margin-left: -14px;
+      fill: currentColor;
+    }
+  }
+}

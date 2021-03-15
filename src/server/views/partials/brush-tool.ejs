@@ -1,0 +1,106 @@
+<button class="toolbar__button active" type="button" data-tool="brush" title="Brush" aria-label="Brush">
+  <svg aria-hidden="true">
+    <use xlink:href="#highlighter-solid"></use>
+  </svg>
+</button>
+<div id="options-bar-brush" class="options-bar options-bar-brush">
+  <div class="options-bar__tools">
+    <div class="options-bar__tool options-bar-brush__color">
+      <button
+        id="options-bar-brush__color-button"
+        class="options-bar-brush__color-button"
+        aria-haspopup="true"
+        aria-controls="options-bar-brush__color-palette"
+        aria-expanded="false"
+      >
+        <span class="options-bar-brush__color-current sr-only" aria-live="polite">
+          Current color is: <span id="options-bar-brush__color-current"></span>
+        </span>
+        <span
+          class="options-bar-brush__color-button-label sr-only-text"
+          id="options-bar-brush__color-button-label"
+        >
+          Toggle Color Menu
+        </span>
+      </button>
+      <div
+        id="options-bar-brush__color-menu"
+        class="options-bar-brush__color-menu hidden"
+        aria-labelledby="options-bar-brush__color-button"
+      >
+        <ul class="options-bar-brush__color-menu-list">
+          <li class="options-bar-brush__color-menu-list-item">
+            <button class="options-bar-brush__color-button" data-color="#000000">
+              <span
+                class="options-bar-brush__color-button-label sr-only-text"
+                style="background-color: #000000;"
+              >
+                #000000
+              </span>
+            </button>
+          </li>
+          <li class="options-bar-brush__color-menu-list-item">
+            <button class="options-bar-brush__color-button" data-color="#0040B9">
+              <span
+                class="options-bar-brush__color-button-label sr-only-text"
+                style="background-color: #0040B9;"
+              >
+                #0040B9
+              </span>
+            </button>
+          </li>
+          <li class="options-bar-brush__color-menu-list-item">
+            <button class="options-bar-brush__color-button" data-color="#089F7F">
+              <span
+                class="options-bar-brush__color-button-label sr-only-text"
+                style="background-color: #089F7F;"
+              >
+                #089F7F
+              </span>
+            </button>
+          </li>
+          <li class="options-bar-brush__color-menu-list-item">
+            <button class="options-bar-brush__color-button" data-color="#DE2C33">
+              <span
+                class="options-bar-brush__color-button-label sr-only-text"
+                style="background-color: #DE2C33;"
+              >
+                #DE2C33
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="options-bar__tool">
+      <div class="form-group form-number options-bar__brush-size-input" data-min="1" data-max="30" data-step="1">
+        <input
+          id="options-bar-brush__input"
+          class="form-control"
+          type="text"
+          pattern="[1-9][0-9]*"
+          inputmode="numeric"
+          aria-label="Set Brush Size"
+        >
+        <button type="button" class="form-number-button-inc">
+          Increment
+        </button>
+        <button type="button" class="form-number-button-dec">
+          Decrement
+        </button>
+      </div>
+      <div class="form-group">
+        <input
+          id="options-bar-brush__range"
+          class="form-range"
+          type="range"
+          min="1"
+          max="30"
+          step="1"
+          value="5"
+          aria-label="Set Brush Size"
+        >
+      </div>
+    </div>
+  </div>
+</div>

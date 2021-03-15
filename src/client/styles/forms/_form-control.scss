@@ -1,0 +1,30 @@
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  font-family: $roboto;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+  color: $white;
+  background-color: lighten($black-hover, 5%);
+  background-clip: padding-box;
+  border: 1px solid $black;
+  border-radius: 4px;
+  appearance: none; // Fix appearance for date inputs in Safari
+  transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
+
+  &:focus {
+    color: $black;
+    background-color: lighten($black-hover, 55%);
+    outline: 0;
+  }
+
+  &:disabled,
+  &[readonly] {
+    background-color: $black-hover;
+    color: lighten($black-hover, 10%);
+    // iOS fix for unreadable disabled content; see https://github.com/twbs/bootstrap/issues/11655.
+    opacity: 1;
+  }
+}

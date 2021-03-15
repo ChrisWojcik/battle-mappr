@@ -1,0 +1,84 @@
+.form-range {
+  -webkit-appearance: none;
+  background: transparent;
+  margin: 0;
+  width: 100%;
+}
+.form-range:focus {
+  outline: none;
+}
+.form-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: $red;
+  border: 0px solid #000101;
+}
+.form-range::-webkit-slider-thumb {
+  border: 0px solid #000000;
+  height: 20px;
+  width: 20px;
+  border-radius: 10px;
+  background: $white;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -7px;
+}
+.form-range:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba($red-hover, 0.75);
+}
+.form-range:focus::-webkit-slider-runnable-track {
+  background: $red;
+}
+.form-range::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: $red;
+  border: 0px solid #000101;
+}
+.form-range::-moz-range-thumb {
+  border: 0px solid #000000;
+  height: 20px;
+  width: 20px;
+  border-radius: 10px;
+  background: $white;
+  cursor: pointer;
+}
+.form-range:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba($red-hover, 0.75);
+}
+.form-range::-ms-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  border-width: 20px 0;
+  color: transparent;
+}
+.form-range::-ms-fill-lower {
+  background: $red;
+  border: 0px solid #000101;
+}
+.form-range::-ms-fill-upper {
+  background: $red;
+  border: 0px solid #000101;
+}
+.form-range::-ms-thumb {
+  border: 0px solid #000000;
+  height: 20px;
+  width: 20px;
+  border-radius: 10px;
+  background: $white;
+  cursor: pointer;
+}
+.form-range:focus::-ms-thumb {
+  box-shadow: 0 0 0 3px rgba($red-hover, 0.75);
+}
+.form-range:focus::-ms-fill-lower {
+  background: $red;
+}
+.form-range:focus::-ms-fill-upper {
+  background: $red;
+}
