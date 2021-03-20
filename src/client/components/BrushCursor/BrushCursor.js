@@ -1,7 +1,7 @@
 import SUPPORTS from '@/lib/featureDetection';
 import {
   SET_ACTIVE_TOOL,
-  SET_SCALE,
+  SET_ZOOM,
   SET_BRUSH_SIZE,
   SET_ERASER_SIZE,
 } from '@/stores/ToolbarStore';
@@ -21,12 +21,12 @@ export default class BrushCursor {
 
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onSetActiveTool = this._onSetActiveTool.bind(this);
-    this._onSetScale = this._onSetScale.bind(this);
+    this._onSetZoom = this._onSetZoom.bind(this);
     this._onSetBrushSize = this._onSetBrushSize.bind(this);
     this._onSetEraserSize = this._onSetEraserSize.bind(this);
 
     this._toolbarStore.on(SET_ACTIVE_TOOL, this._onSetActiveTool);
-    this._toolbarStore.on(SET_SCALE, this._onSetScale);
+    this._toolbarStore.on(SET_ZOOM, this._onSetZoom);
     this._toolbarStore.on(SET_BRUSH_SIZE, this._onSetBrushSize);
     this._toolbarStore.on(SET_ERASER_SIZE, this._onSetEraserSize);
 
@@ -56,7 +56,7 @@ export default class BrushCursor {
     }
   }
 
-  _onSetScale(scale) {
+  _onSetZoom(scale) {
     this._$cursor.style.transform = `translate(-50%, -50%) scale(${scale})`;
   }
 

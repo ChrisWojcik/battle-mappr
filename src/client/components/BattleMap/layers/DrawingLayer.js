@@ -29,7 +29,7 @@ export default class DrawingLayer {
     this._onReplaceAllLines = this._onReplaceAllLines.bind(this);
     this._onSetActiveTool = this._onSetActiveTool.bind(this);
     this._onPointerDown = this._onPointerDown.bind(this);
-    this._onPointerMove = throttle(this._onPointerMove.bind(this), 20);
+    this._onPointerMove = throttle(this._onPointerMove.bind(this), 10);
     this._onPointerUp = this._onPointerUp.bind(this);
 
     this._ready = false;
@@ -106,7 +106,12 @@ export default class DrawingLayer {
   }
 
   _onPointerDown(e) {
+    if (e.evt.touches && e.evt.touches[1]) {
+      return;
+    }
+
     e.evt.preventDefault();
+
     const pos = this._getPointerPosition();
 
     this._currentLine = this._createLine({
@@ -130,6 +135,13 @@ export default class DrawingLayer {
       return;
     }
 
+    if (e.evt.touches && e.evt.touches[1]) {
+      this._currentLine.destroy();
+      this._currentLine = null;
+      this._layer.batchDraw();
+      return;
+    }
+
     e.evt.preventDefault();
 
     const pos = this._getPointerPosition();
@@ -139,6 +151,13 @@ export default class DrawingLayer {
 
   _onPointerUp(e) {
     if (!this._currentLine) {
+      return;
+    }
+
+    if (e.evt.touches && e.evt.touches[1]) {
+      this._currentLine.destroy();
+      this._currentLine = null;
+      this._layer.batchDraw();
       return;
     }
 

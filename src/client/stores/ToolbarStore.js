@@ -2,13 +2,13 @@ import EventEmitter from './EventEmitter';
 import clamp from '@/lib/utils/clamp';
 
 export const SET_ACTIVE_TOOL = 'toolbar/SET_ACTIVE_TOOL';
-export const SET_SCALE = 'toolbar/SET_SCALE';
+export const SET_ZOOM = 'toolbar/SET_ZOOM';
 export const SET_BRUSH_SIZE = 'toolbar/SET_BRUSH_SIZE';
 export const SET_BRUSH_COLOR = 'toolbar/SET_BRUSH_COLOR';
 export const SET_ERASER_SIZE = 'toolbar/SET_ERASER_SIZE';
 
-const MIN_SCALE = 0.1;
-const MAX_SCALE = 10;
+const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 10;
 
 const MIN_BRUSH_SIZE = 1;
 const MAX_BRUSH_SIZE = 30;
@@ -25,7 +25,7 @@ class ToolbarStore extends EventEmitter {
     super();
 
     this._activeTool = 'brush';
-    this._scale = 1;
+    this._zoom = 1;
     this._brushSize = 5;
     this._brushColor = '#000000';
     this._eraserSize = 20;
@@ -50,8 +50,8 @@ class ToolbarStore extends EventEmitter {
     return this._activeTool;
   }
 
-  getScale() {
-    return this._scale;
+  getZoom() {
+    return this._zoom;
   }
 
   getBrushSize() {
@@ -71,12 +71,12 @@ class ToolbarStore extends EventEmitter {
     this.emit(SET_ACTIVE_TOOL, tool);
   }
 
-  setScale(scale) {
-    const oldScale = this._scale;
-    const newScale = clamp(scale, MIN_SCALE, MAX_SCALE);
+  setZoom(zoom, center) {
+    const oldZoom = this._zoom;
+    const newZoom = clamp(zoom, MIN_ZOOM, MAX_ZOOM);
 
-    this._scale = newScale;
-    this.emit(SET_SCALE, newScale, oldScale);
+    this._zoom = newZoom;
+    this.emit(SET_ZOOM, newZoom, oldZoom, center);
   }
 
   setBrushSize(size) {
