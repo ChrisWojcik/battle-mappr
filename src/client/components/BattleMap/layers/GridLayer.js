@@ -5,7 +5,7 @@ const GRID_SIZE = 40;
 export default class GridLayer {
   constructor(stage) {
     this._stage = stage;
-    this._layer = new Konva.Layer({ listening: false });
+    this._layer = new Konva.Layer({ listening: false, draggable: false });
     this._stage.add(this._layer);
 
     this.draw = this.draw.bind(this);
@@ -42,6 +42,14 @@ export default class GridLayer {
           x,
           nextGridLineY + GRID_SIZE * ITERATIONS_Y,
         ],
+        shadowForStrokeEnabled: false,
+        listening: false,
+        bezier: false,
+        hitStrokeWidth: 0,
+        shadowEnabled: false,
+        dashEnabled: false,
+        draggable: false,
+        perfectDrawEnabled: false,
       });
 
       group.push(gridLine);
@@ -64,6 +72,14 @@ export default class GridLayer {
           nextGridLineX + GRID_SIZE * ITERATIONS_X,
           y,
         ],
+        shadowForStrokeEnabled: false,
+        listening: false,
+        bezier: false,
+        hitStrokeWidth: 0,
+        shadowEnabled: false,
+        dashEnabled: false,
+        draggable: false,
+        perfectDrawEnabled: false,
       });
 
       group.push(gridLine);

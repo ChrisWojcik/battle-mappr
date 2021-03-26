@@ -16,7 +16,7 @@ import throttle from '@/lib/utils/throttle';
 export default class DrawingLayer {
   constructor(stage, toolbarStore, layerStore) {
     this._stage = stage;
-    this._layer = new Konva.Layer({ listening: false });
+    this._layer = new Konva.Layer({ listening: false, draggable: false });
     this._stage.add(this._layer);
 
     this._onLoaded = this._onLoaded.bind(this);
@@ -121,7 +121,6 @@ export default class DrawingLayer {
         this._mode === 'brush'
           ? this._toolbarStore.getBrushSize()
           : this._toolbarStore.getEraserSize(),
-      bezier: true,
       globalCompositeOperation:
         this._mode === 'brush' ? 'source-over' : 'destination-out',
       points: [pos.x, pos.y],
@@ -173,8 +172,6 @@ export default class DrawingLayer {
         pos.x + 0.0000001,
         pos.y + 0.0000001,
       ]);
-
-      this._currentLine.bezier(false);
 
       this._layer.batchDraw();
     }
@@ -261,11 +258,17 @@ export default class DrawingLayer {
 
   _createLine(attrs) {
     return new Konva.Line({
+      ...attrs,
       lineCap: 'round',
       lineJoin: 'round',
       shadowForStrokeEnabled: false,
       listening: false,
-      ...attrs,
+      bezier: false,
+      hitStrokeWidth: 0,
+      shadowEnabled: false,
+      dashEnabled: false,
+      draggable: false,
+      perfectDrawEnabled: false,
     });
   }
 
@@ -276,7 +279,6 @@ export default class DrawingLayer {
       id: attrs.id,
       stroke: attrs.stroke,
       strokeWidth: attrs.strokeWidth,
-      bezier: attrs.bezier,
       globalCompositeOperation: attrs.globalCompositeOperation,
       points: attrs.points,
     };
