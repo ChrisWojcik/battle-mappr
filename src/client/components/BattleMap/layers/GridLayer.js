@@ -1,110 +1,117 @@
-import Konva from 'konva';
-
 const GRID_SIZE = 40;
 
 export default class GridLayer {
-  constructor(stage) {
+  constructor(el, stage) {
+    this._$el = el;
     this._stage = stage;
-    this._layer = new Konva.Layer({ listening: false, draggable: false });
-    this._stage.add(this._layer);
+
+    this._canvas = document.createElement('canvas');
+    this._ctx = this._canvas.getContext('2d');
+    this._ctx.imageSmoothingEnabled = false;
+    this._$el.insertBefore(this._canvas, this._$el.firstChild);
+
+    this._gridCenter = {
+      x: this._$el.offsetWidth / 2,
+      y: this._$el.offsetHeight / 2,
+    };
+
+    this._width = 0;
+    this._height = 0;
+
+    this._isDrawing = false;
 
     this.draw = this.draw.bind(this);
+    this.resize = this.resize.bind(this);
+    this._drawGrid = this._drawGrid.bind(this);
+
+    this.resize();
+  }
+
+  resize() {
+    const width = this._$el.offsetWidth;
+    const height = this._$el.offsetHeight;
+
+    this._canvas.width = width;
+    this._canvas.height = height;
+
+    this._width = width;
+    this._height = height;
+
+    this.draw();
   }
 
   draw() {
-    this._layer.destroyChildren();
-
-    const r = this._getViewportRect();
-    const ITERATIONS_X = Math.ceil((r.width * 1.5) / GRID_SIZE);
-    const ITERATIONS_Y = Math.ceil((r.height * 1.5) / GRID_SIZE);
-    const previousGridLineX = Math.floor(r.left / GRID_SIZE) * GRID_SIZE;
-    const nextGridLineX = Math.ceil(r.right / GRID_SIZE) * GRID_SIZE;
-    const previousGridLineY = Math.floor(r.top / GRID_SIZE) * GRID_SIZE;
-    const nextGridLineY = Math.floor(r.bottom / GRID_SIZE) * GRID_SIZE;
-
-    const largeLines = [];
-    const smallLines = [];
-
-    for (
-      let x = previousGridLineX - GRID_SIZE * ITERATIONS_X;
-      x <= nextGridLineX + GRID_SIZE * ITERATIONS_X;
-      x += GRID_SIZE
-    ) {
-      const isLargeLine = x % (GRID_SIZE * 5) === 0;
-      const group = isLargeLine ? largeLines : smallLines;
-
-      const gridLine = new Konva.Line({
-        stroke: isLargeLine ? '#aaaaaa' : '#c7c7c7',
-        strokeWidth: isLargeLine ? 4 : 2,
-        points: [
-          x,
-          previousGridLineY - GRID_SIZE * ITERATIONS_Y,
-          x,
-          nextGridLineY + GRID_SIZE * ITERATIONS_Y,
-        ],
-        shadowForStrokeEnabled: false,
-        listening: false,
-        bezier: false,
-        hitStrokeWidth: 0,
-        shadowEnabled: false,
-        dashEnabled: false,
-        draggable: false,
-        perfectDrawEnabled: false,
-      });
-
-      group.push(gridLine);
+    if (!this._isDrawing) {
+      this._isDrawing = true;
+      requestAnimationFrame(this._drawGrid);
     }
-
-    for (
-      let y = previousGridLineY - GRID_SIZE * ITERATIONS_Y;
-      y <= nextGridLineY + GRID_SIZE * ITERATIONS_Y;
-      y += GRID_SIZE
-    ) {
-      const isLargeLine = y % (GRID_SIZE * 5) === 0;
-      const group = isLargeLine ? largeLines : smallLines;
-
-      const gridLine = new Konva.Line({
-        stroke: isLargeLine ? '#aaaaaa' : '#c7c7c7',
-        strokeWidth: isLargeLine ? 4 : 2,
-        points: [
-          previousGridLineX - GRID_SIZE * ITERATIONS_X,
-          y,
-          nextGridLineX + GRID_SIZE * ITERATIONS_X,
-          y,
-        ],
-        shadowForStrokeEnabled: false,
-        listening: false,
-        bezier: false,
-        hitStrokeWidth: 0,
-        shadowEnabled: false,
-        dashEnabled: false,
-        draggable: false,
-        perfectDrawEnabled: false,
-      });
-
-      group.push(gridLine);
-    }
-
-    smallLines.forEach((line) => this._layer.add(line));
-    largeLines.forEach((line) => this._layer.add(line));
-    this._layer.batchDraw();
   }
 
-  _getViewportRect() {
-    const scale = this._stage.scaleX();
-    const absolutePosition = this._stage.getAbsolutePosition();
-    const width = this._stage.width() / scale;
-    const height = this._stage.height() / scale;
-    const top = (absolutePosition.y * -1) / scale;
-    const left = (absolutePosition.x * -1) / scale;
+  _drawGrid() {
+    this._ctx.clearRect(0, 0, this._width, this._height);
+    this._ctx.canvas.width = this._ctx.canvas.width;
 
-    return {
-      width,
-      height,
-      top,
-      right: left + width,
-      bottom: top + height,
-      left,
-    };
+    const scale = this._stage.scaleX();
+    const absoluteX = this._stage.getAbsolutePosition().x / scale;
+    const absoluteY = this._stage.getAbsolutePosition().y / scale;
+    const scaledWidth = this._width / scale;
+    const scaledHeight = this._height / scale;
+
+    // offsets relative to the original center point
+    let centerX = this._gridCenter.x + absoluteX;
+    let centerY = this._gridCenter.y + absoluteY;
+
+    // starting from the new offset center find the x/y coordinates of the first
+    // set of grid lines that need to be drawn beyond the top/left edge of the canvas
+    let START_X = -1 * (Math.ceil(centerX / GRID_SIZE) * GRID_SIZE - centerX);
+    let START_Y = -1 * (Math.ceil(centerY / GRID_SIZE) * GRID_SIZE - centerY);
+
+    this._ctx.scale(scale, scale);
+
+    this._ctx.beginPath();
+    this._ctx.lineWidth = 2;
+    this._ctx.strokeStyle = '#c7c7c7';
+
+    for (let x = START_X; x <= scaledWidth; x += GRID_SIZE) {
+      // omit every 5th line out from the center of the grid
+      if (Math.round(x - centerX) % (GRID_SIZE * 5) !== 0) {
+        this._ctx.moveTo(x, 0);
+        this._ctx.lineTo(x, scaledHeight);
+      }
+    }
+
+    for (let y = START_Y; y <= scaledHeight; y += GRID_SIZE) {
+      // omit every 5th line out from the center of the grid
+      if (Math.round(y - centerY) % (GRID_SIZE * 5) !== 0) {
+        this._ctx.moveTo(0, y);
+        this._ctx.lineTo(scaledWidth, y);
+      }
+    }
+
+    this._ctx.stroke();
+
+    this._ctx.beginPath();
+    this._ctx.lineWidth = 4;
+    this._ctx.strokeStyle = '#aaaaaa';
+
+    for (let x = START_X; x <= scaledWidth; x += GRID_SIZE) {
+      // only draw every 5th line out from the center of the grid
+      if (Math.round(x - centerX) % (GRID_SIZE * 5) === 0) {
+        this._ctx.moveTo(x, 0);
+        this._ctx.lineTo(x, scaledHeight);
+      }
+    }
+
+    for (let y = START_Y; y <= scaledHeight; y += GRID_SIZE) {
+      // only draw every 5th line out from the center of the grid
+      if (Math.round(y - centerY) % (GRID_SIZE * 5) === 0) {
+        this._ctx.moveTo(0, y);
+        this._ctx.lineTo(scaledWidth, y);
+      }
+    }
+
+    this._ctx.stroke();
+
+    this._isDrawing = false;
   }
 }

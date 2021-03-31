@@ -44,11 +44,10 @@ class BattleMap {
       container: this._$el,
       width,
       height,
-      x: width / 2,
-      y: height / 2,
     });
 
-    this._gridLayer = new GridLayer(this._stage);
+    this._gridLayer = new GridLayer(this._$el, this._stage);
+
     this._drawingLayer = new DrawingLayer(
       this._stage,
       this._toolbarStore,
@@ -61,7 +60,7 @@ class BattleMap {
     this._onTouchStart = this._onTouchStart.bind(this);
     this._onTouchMove = this._onTouchMove.bind(this);
     this._onTouchEnd = this._onTouchEnd.bind(this);
-    this._onDragend = this._onDragend.bind(this);
+    this._onDragmove = this._onDragmove.bind(this);
     this._onWheel = this._onWheel.bind(this);
 
     window.addEventListener('resize', this._onResize, false);
@@ -70,10 +69,8 @@ class BattleMap {
     this._stage.on('touchstart', this._onTouchStart);
     this._stage.on('touchmove', this._onTouchMove);
     this._stage.on('touchend touchcancel', this._onTouchEnd);
-    this._stage.on('dragend', this._onDragend);
+    this._stage.on('dragmove', this._onDragmove);
     this._stage.on('wheel', this._onWheel);
-
-    this._gridLayer.draw();
   }
 
   _onSetActiveTool(tool) {
@@ -85,7 +82,7 @@ class BattleMap {
     this._stage.width(this._$el.offsetWidth);
     this._stage.height(this._$el.offsetHeight);
 
-    this._gridLayer.draw();
+    this._gridLayer.resize();
   }
 
   _onTouchStart(e) {
@@ -161,7 +158,7 @@ class BattleMap {
     this._lastCenter = null;
   }
 
-  _onDragend() {
+  _onDragmove() {
     this._gridLayer.draw();
   }
 
@@ -189,13 +186,8 @@ class BattleMap {
     };
 
     this._stage.position(newPos);
+    this._gridLayer.draw();
     this._stage.batchDraw();
-
-    clearTimeout(this._zoomIdleTimeout);
-
-    this._zoomIdleTimeout = setTimeout(() => {
-      this._gridLayer.draw();
-    }, 350);
   }
 }
 
