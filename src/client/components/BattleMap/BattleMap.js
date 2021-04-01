@@ -46,7 +46,7 @@ class BattleMap {
       height,
     });
 
-    this._gridLayer = new GridLayer(this._$el, this._stage);
+    this._gridLayer = new GridLayer(this._$el, this._stage, this._toolbarStore);
 
     this._drawingLayer = new DrawingLayer(
       this._stage,

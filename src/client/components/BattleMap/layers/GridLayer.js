@@ -1,9 +1,12 @@
 const GRID_SIZE = 40;
 
 export default class GridLayer {
-  constructor(el, stage) {
+  constructor(el, stage, toolbarStore) {
     this._$el = el;
     this._stage = stage;
+    this._toolbarStore = toolbarStore;
+
+    this._devicePixelRatio = window.devicePixelRatio || 1;
 
     this._canvas = document.createElement('canvas');
     this._ctx = this._canvas.getContext('2d');
@@ -19,6 +22,7 @@ export default class GridLayer {
     this._height = 0;
 
     this._isDrawing = false;
+    this._raf = null;
 
     this.draw = this.draw.bind(this);
     this.resize = this.resize.bind(this);
@@ -31,19 +35,28 @@ export default class GridLayer {
     const width = this._$el.offsetWidth;
     const height = this._$el.offsetHeight;
 
-    this._canvas.width = width;
-    this._canvas.height = height;
+    this._width = width * this._devicePixelRatio;
+    this._height = height * this._devicePixelRatio;
 
-    this._width = width;
-    this._height = height;
+    this._canvas.width = this._width;
+    this._canvas.height = this._height;
 
-    this.draw();
+    this._canvas.style.width = width + 'px';
+    this._canvas.style.height = height + 'px';
+
+    this.draw(true);
   }
 
-  draw() {
-    if (!this._isDrawing) {
-      this._isDrawing = true;
-      requestAnimationFrame(this._drawGrid);
+  draw(force) {
+    if (force) {
+      cancelAnimationFrame(this._raf);
+      this._drawing = true;
+      this._drawGrid();
+    } else {
+      if (!this._isDrawing) {
+        this._isDrawing = true;
+        this._raf = requestAnimationFrame(this._drawGrid);
+      }
     }
   }
 
@@ -51,7 +64,7 @@ export default class GridLayer {
     this._ctx.clearRect(0, 0, this._width, this._height);
     this._ctx.canvas.width = this._ctx.canvas.width;
 
-    const scale = this._stage.scaleX();
+    const scale = this._toolbarStore.getZoom();
     const absoluteX = this._stage.getAbsolutePosition().x / scale;
     const absoluteY = this._stage.getAbsolutePosition().y / scale;
     const scaledWidth = this._width / scale;
@@ -66,7 +79,10 @@ export default class GridLayer {
     let START_X = -1 * (Math.ceil(centerX / GRID_SIZE) * GRID_SIZE - centerX);
     let START_Y = -1 * (Math.ceil(centerY / GRID_SIZE) * GRID_SIZE - centerY);
 
-    this._ctx.scale(scale, scale);
+    this._ctx.scale(
+      scale * this._devicePixelRatio,
+      scale * this._devicePixelRatio
+    );
 
     this._ctx.beginPath();
     this._ctx.lineWidth = 2;
