@@ -6,7 +6,6 @@ A canvas app for collaboratively drawing battle maps (e.g. for DnD sessions) ove
 
 ## Built with:
 
-- [Konva.js](https://konvajs.org/) - 2D canvas library
 - [ShareDB](https://github.com/share/sharedb) - Operational Transforms for eventual consistency
 
 ## Local Development

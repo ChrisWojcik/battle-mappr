@@ -1,4 +1,4 @@
-import EventEmitter from './EventEmitter';
+import EventEmitter from '@/lib/EventEmitter';
 import clamp from '@/lib/utils/clamp';
 
 export const SET_ACTIVE_TOOL = 'toolbar/SET_ACTIVE_TOOL';

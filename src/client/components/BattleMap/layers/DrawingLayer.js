@@ -1,72 +1,132 @@
-import Konva from 'konva';
 import cuid from 'cuid';
+import simplify from 'simplify-flat-array';
+import { LOADED, ERROR, LINES } from '@/stores/DrawingLayerStore';
+import { SET_ACTIVE_TOOL, SET_ZOOM } from '@/stores/ToolbarStore';
 import {
-  DRAWING_LAYER_LOADED,
-  DRAWING_LAYER_ERROR,
-  ADD_LINE,
-  REMOVE_LINE,
-  REORDER_LINE,
-  REPLACE_LINE,
-  REMOVE_ALL_LINES,
-  REPLACE_ALL_LINES,
-} from '@/stores/DrawingLayerStore';
-import { SET_ACTIVE_TOOL } from '@/stores/ToolbarStore';
-import throttle from '@/lib/utils/throttle';
+  RESIZE,
+  DRAG_MOVE,
+  POINTER_DOWN,
+  POINTER_MOVE,
+  POINTER_UP,
+  POINTER_CANCEL,
+} from '@/components/BattleMap';
 
 export default class DrawingLayer {
-  constructor(stage, toolbarStore, layerStore) {
-    this._stage = stage;
-    this._layer = new Konva.Layer({ listening: false, draggable: false });
-    this._stage.add(this._layer);
+  constructor(canvas, battleMap, toolbarStore, layerStore) {
+    this._$el = canvas;
+    this._battleMap = battleMap;
+    this._toolbarStore = toolbarStore;
+    this._layerStore = layerStore;
 
-    this._onLoaded = this._onLoaded.bind(this);
-    this._onError = this._onError.bind(this);
-    this._onAddLine = this._onAddLine.bind(this);
-    this._onRemoveLine = this._onRemoveLine.bind(this);
-    this._onReorderLine = this._onReorderLine.bind(this);
-    this._onReplaceLine = this._onReplaceLine.bind(this);
-    this._onRemoveAllLines = this._onRemoveAllLines.bind(this);
-    this._onReplaceAllLines = this._onReplaceAllLines.bind(this);
-    this._onSetActiveTool = this._onSetActiveTool.bind(this);
-    this._onPointerDown = this._onPointerDown.bind(this);
-    this._onPointerMove = throttle(this._onPointerMove.bind(this), 10);
-    this._onPointerUp = this._onPointerUp.bind(this);
+    this._ctx = canvas.getContext('2d');
+    this._ctx.imageSmoothingEnabled = false;
+
+    // constrain resolution of this layer for performance reasons
+    this._resolution = Math.min(window.devicePixelRatio || 1, 2);
+
+    this._isDrawing = false;
+    this._raf = null;
 
     this._ready = false;
     this._currentLine = null;
     this._mode = null;
 
-    this._toolbarStore = toolbarStore;
+    this._onLoaded = this._onLoaded.bind(this);
+    this._onError = this._onError.bind(this);
+    this._requestDraw = this._requestDraw.bind(this);
+    this._draw = this._draw.bind(this);
+    this._onResize = this._onResize.bind(this);
+    this._onSetActiveTool = this._onSetActiveTool.bind(this);
+    this._onPointerDown = this._onPointerDown.bind(this);
+    this._onPointerMove = this._onPointerMove.bind(this);
+    this._onPointerUp = this._onPointerUp.bind(this);
+    this._onPointerCancel = this._onPointerCancel.bind(this);
+
     this._toolbarStore.on(SET_ACTIVE_TOOL, this._onSetActiveTool);
+    this._toolbarStore.on(SET_ZOOM, this._requestDraw);
 
-    this._layerStore = layerStore;
-    this._layerStore.on(DRAWING_LAYER_LOADED, this._onLoaded);
-    this._layerStore.on(DRAWING_LAYER_ERROR, this._onError);
-    this._layerStore.on(ADD_LINE, this._onAddLine);
-    this._layerStore.on(REMOVE_LINE, this._onRemoveLine);
-    this._layerStore.on(REORDER_LINE, this._onReorderLine);
-    this._layerStore.on(REPLACE_LINE, this._onReplaceLine);
-    this._layerStore.on(REMOVE_ALL_LINES, this._onRemoveAllLines);
-    this._layerStore.on(REPLACE_ALL_LINES, this._onReplaceAllLines);
+    this._layerStore.on(LOADED, this._onLoaded);
+    this._layerStore.on(ERROR, this._onError);
+    this._layerStore.on(LINES, this._requestDraw);
+
+    this._battleMap.on(RESIZE, this._onResize);
+    this._battleMap.on(DRAG_MOVE, this._requestDraw);
+
+    this._onResize();
   }
 
-  _onLoaded(lines) {
-    lines.forEach((attrs) => {
-      const line = this._createLine(attrs);
-      this._layer.add(line);
-    });
+  _onResize() {
+    const width = this._battleMap.width;
+    const height = this._battleMap.height;
 
-    this._layer.batchDraw();
-    this._ready = true;
-    this._onSetActiveTool(this._toolbarStore.getActiveTool());
+    this._ctx.canvas.width = width * this._resolution;
+    this._ctx.canvas.height = height * this._resolution;
+
+    this._$el.style.width = width + 'px';
+    this._$el.style.height = height + 'px';
+
+    this._requestDraw(true);
   }
 
-  _onError() {
-    this._onSetActiveTool(null);
-    this._layer.destroyChildren();
-    this._layer.batchDraw();
-    this._currentLine = null;
-    this._ready = false;
+  _requestDraw(force) {
+    if (force) {
+      cancelAnimationFrame(this._raf);
+      this._isDrawing = true;
+      this._draw();
+      this._isDrawing = false;
+    } else {
+      if (!this._isDrawing) {
+        this._isDrawing = true;
+        this._raf = requestAnimationFrame(() => {
+          this._draw();
+          this._isDrawing = false;
+        });
+      }
+    }
+  }
+
+  _draw() {
+    this._ctx.canvas.width = this._ctx.canvas.width;
+
+    const lines = this._layerStore.getAllLines();
+    const scale = this._toolbarStore.getZoom();
+
+    this._ctx.scale(scale * this._resolution, scale * this._resolution);
+
+    for (let i = 0; i < lines.length; i++) {
+      this._drawLine(lines[i]);
+    }
+
+    if (this._currentLine) {
+      this._drawLine(this._currentLine);
+    }
+  }
+
+  _drawLine(line) {
+    const scale = this._toolbarStore.getZoom();
+
+    this._ctx.beginPath();
+    this._ctx.strokeStyle = line.strokeStyle;
+    this._ctx.lineWidth = line.lineWidth;
+    this._ctx.lineCap = 'round';
+    this._ctx.lineJoin = 'round';
+    this._ctx.globalCompositeOperation = line.globalCompositeOperation;
+
+    for (let i = 0; i < line.points.length; i += 2) {
+      if (i === 0) {
+        this._ctx.moveTo(
+          line.points[i] - this._battleMap.x / scale,
+          line.points[i + 1] - this._battleMap.y / scale
+        );
+      } else {
+        this._ctx.lineTo(
+          line.points[i] - this._battleMap.x / scale,
+          line.points[i + 1] - this._battleMap.y / scale
+        );
+      }
+    }
+
+    this._ctx.stroke();
   }
 
   _onSetActiveTool(tool) {
@@ -78,55 +138,52 @@ export default class DrawingLayer {
 
     if (canDraw) {
       if (!this._mode) {
-        this._stage.on('mousedown touchstart', this._onPointerDown);
-        this._stage.on('mousemove touchmove', this._onPointerMove);
-        this._stage.on(
-          'mouseup mouseout touchend touchcancel',
-          this._onPointerUp
-        );
+        this._battleMap.on(POINTER_DOWN, this._onPointerDown);
+        this._battleMap.on(POINTER_MOVE, this._onPointerMove);
+        this._battleMap.on(POINTER_UP, this._onPointerUp);
+        this._battleMap.on(POINTER_CANCEL, this._onPointerCancel);
       }
 
       this._mode = tool;
     } else {
       this._mode = null;
 
-      this._stage.off('mousedown touchstart', this._onPointerDown);
-      this._stage.off('mousemove touchmove', this._onPointerMove);
-      this._stage.off(
-        'mouseup mouseout touchend touchcancel',
-        this._onPointerUp
-      );
+      this._battleMap.off(POINTER_DOWN, this._onPointerDown);
+      this._battleMap.off(POINTER_MOVE, this._onPointerMove);
+      this._battleMap.off(POINTER_UP, this._onPointerUp);
+      this._battleMap.off(POINTER_CANCEL, this._onPointerCancel);
 
       if (this._currentLine) {
-        this._currentLine.destroy();
         this._currentLine = null;
-        this._layer.batchDraw();
+        this._requestDraw();
       }
     }
   }
 
+  _onLoaded() {
+    this._ready = true;
+    this._onSetActiveTool(this._toolbarStore.getActiveTool());
+  }
+
+  _onError() {
+    this._onSetActiveTool(null);
+    this._currentLine = null;
+    this._ready = false;
+    this._requestDraw();
+  }
+
   _onPointerDown(e) {
-    if (e.evt.touches && e.evt.touches[1]) {
-      return;
-    }
-
-    e.evt.preventDefault();
-
-    const pos = this._getPointerPosition();
-
-    this._currentLine = this._createLine({
+    this._currentLine = {
       id: cuid(),
-      stroke: this._toolbarStore.getBrushColor(),
-      strokeWidth:
+      strokeStyle: this._toolbarStore.getBrushColor(),
+      lineWidth:
         this._mode === 'brush'
           ? this._toolbarStore.getBrushSize()
           : this._toolbarStore.getEraserSize(),
       globalCompositeOperation:
         this._mode === 'brush' ? 'source-over' : 'destination-out',
-      points: [pos.x, pos.y],
-    });
-
-    this._layer.add(this._currentLine);
+      points: [e.x, e.y],
+    };
   }
 
   _onPointerMove(e) {
@@ -134,18 +191,17 @@ export default class DrawingLayer {
       return;
     }
 
-    if (e.evt.touches && e.evt.touches[1]) {
-      this._currentLine.destroy();
-      this._currentLine = null;
-      this._layer.batchDraw();
-      return;
-    }
+    this._drawLine({
+      ...this._currentLine,
+      points: [
+        this._currentLine.points[this._currentLine.points.length - 2],
+        this._currentLine.points[this._currentLine.points.length - 1],
+        e.x,
+        e.y,
+      ],
+    });
 
-    e.evt.preventDefault();
-
-    const pos = this._getPointerPosition();
-    this._currentLine.points([...this._currentLine.points(), pos.x, pos.y]);
-    this._layer.batchDraw();
+    this._currentLine.points.push(e.x, e.y);
   }
 
   _onPointerUp(e) {
@@ -153,134 +209,25 @@ export default class DrawingLayer {
       return;
     }
 
-    if (e.evt.touches && e.evt.touches[1]) {
-      this._currentLine.destroy();
-      this._currentLine = null;
-      this._layer.batchDraw();
-      return;
-    }
+    // apply path simplification algorithms
+    this._currentLine.points = simplify(this._currentLine.points, 0.5, false);
 
-    e.evt.preventDefault();
-
-    if (this._currentLine.points().length === 2) {
+    if (this._currentLine.points.length === 2) {
       // if the mouse never moved, make sure there are at least two sets
       // of x,y coordinates to allow the "line" to display as a dot
-      const pos = this._getPointerPosition();
-
-      this._currentLine.points([
-        ...this._currentLine.points(),
-        pos.x + 0.0000001,
-        pos.y + 0.0000001,
-      ]);
-
-      this._layer.batchDraw();
+      this._currentLine.points.push(e.x + 0.0000001, e.y + 0.0000001);
     }
 
     this._layerStore.addLine(
-      this._currentLine.zIndex(),
-      this._serializeLine(this._currentLine)
+      this._layerStore.getAllLines().length,
+      this._currentLine
     );
 
     this._currentLine = null;
+    this._requestDraw();
   }
 
-  _onAddLine(index, attrs, isLocal) {
-    if (isLocal) {
-      return;
-    }
-
-    const line = this._createLine(attrs);
-    this._layer.add(line);
-    line.zIndex(index);
-
-    this._layer.batchDraw();
-  }
-
-  _onRemoveLine(index) {
-    const line = this._layer.children[index];
-
-    if (line) {
-      line.destroy();
-    }
-
-    this._layer.batchDraw();
-  }
-
-  _onReorderLine(oldIndex, newIndex) {
-    const line = this._layer.children[oldIndex];
-
-    if (line) {
-      line.zIndex(newIndex);
-    }
-
-    this._layer.batchDraw();
-  }
-
-  _onReplaceLine(index, newLine) {
-    let line = this._layer.children[index];
-
-    if (line) {
-      line.destroy();
-    }
-
-    line = this._createLine(newLine);
-    this._layer.addLine(line);
-    line.zIndex(index);
-
-    this._layer.batchDraw();
-  }
-
-  _onRemoveAllLines() {
-    this._layer.destroyChildren();
-    this._layer.batchDraw();
-  }
-
-  _onReplaceAllLines(lines) {
-    this._layer.destroyChildren();
-
-    lines.forEach((attrs) => {
-      const line = this._createLine(attrs);
-      this._layer.add(line);
-    });
-
-    this._layer.batchDraw();
-  }
-
-  _getPointerPosition() {
-    const pos = this._stage.getPointerPosition();
-    const scale = this._stage.scaleX();
-
-    return {
-      x: (pos.x - this._stage.x()) / scale,
-      y: (pos.y - this._stage.y()) / scale,
-    };
-  }
-
-  _createLine(attrs) {
-    return new Konva.Line({
-      ...attrs,
-      lineCap: 'round',
-      lineJoin: 'round',
-      shadowForStrokeEnabled: false,
-      listening: false,
-      bezier: false,
-      hitStrokeWidth: 0,
-      shadowEnabled: false,
-      dashEnabled: false,
-      draggable: false,
-      perfectDrawEnabled: false,
-    });
-  }
-
-  _serializeLine(line) {
-    const { attrs } = line;
-
-    return {
-      id: attrs.id,
-      stroke: attrs.stroke,
-      strokeWidth: attrs.strokeWidth,
-      globalCompositeOperation: attrs.globalCompositeOperation,
-      points: attrs.points,
-    };
+  _onPointerCancel() {
+    this._currentLine = null;
   }
 }

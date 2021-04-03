@@ -1,14 +1,9 @@
 import connection from '@/lib/sharedb/connection';
-import EventEmitter from './EventEmitter';
+import EventEmitter from '@/lib/EventEmitter';
 
-export const DRAWING_LAYER_LOADED = 'drawing/DRAWING_LAYER_LOADED';
-export const DRAWING_LAYER_ERROR = 'drawing/DRAWING_LAYER_ERROR';
-export const ADD_LINE = 'drawing/ADD_LINE';
-export const REMOVE_LINE = 'drawing/REMOVE_LINE';
-export const REORDER_LINE = 'drawing/REORDER_LINE';
-export const REPLACE_LINE = 'drawing/REPLACE_LINE';
-export const REMOVE_ALL_LINES = 'drawing/REMOVE_ALL_LINES';
-export const REPLACE_ALL_LINES = 'drawing/REPLACE_ALL_LINES';
+export const LOADED = 'drawing/LOADED';
+export const ERROR = 'drawing/ERROR';
+export const LINES = 'drawing/LINES';
 
 const DRAWING = 'drawing';
 
@@ -26,8 +21,9 @@ export default class DrawingLayerStore extends EventEmitter {
 
   on(event, ...args) {
     // if the doc is already loaded with data, fire the event immediately
-    if (event === DRAWING_LAYER_LOADED && this._doc) {
-      this.emit(DRAWING_LAYER_LOADED, this.getAllLines());
+    if (event === LOADED && this._doc) {
+      this.emit(LOADED);
+      this.emit(LINES, this.getAllLines());
     }
 
     super.on(event, ...args);
@@ -56,7 +52,8 @@ export default class DrawingLayerStore extends EventEmitter {
       }
 
       this._doc = doc;
-      this.emit(DRAWING_LAYER_LOADED, this.getAllLines());
+      this.emit(LOADED);
+      this.emit(LINES, this.getAllLines());
       this._doc.on('op', this._handleOp);
     });
   }
@@ -76,7 +73,7 @@ export default class DrawingLayerStore extends EventEmitter {
       // we can re-sync with the server
       if (err) {
         console.error(err);
-        this.emit(DRAWING_LAYER_ERROR, err);
+        this.emit(ERROR, err);
 
         this._doc.pause();
         this._doc.removeListener('op', this._handleOp);
@@ -90,54 +87,12 @@ export default class DrawingLayerStore extends EventEmitter {
     });
   }
 
-  _handleOp(ops, isLocal) {
-    ops.forEach((op) => {
-      if (op.p[0] !== DRAWING) {
-        return;
+  _handleOp(ops) {
+    for (let i = 0; i < ops.length; i++) {
+      if (ops[i].p[0] === DRAWING) {
+        this.emit(LINES, this.getAllLines());
+        break;
       }
-
-      if (op.ld && op.li) {
-        const index = op.p[1];
-        const newLine = op.li;
-        const oldLine = op.ld;
-
-        this.emit(REPLACE_LINE, index, newLine, oldLine, isLocal);
-        return;
-      }
-
-      if (op.ld) {
-        const index = op.p[1];
-        const line = op.ld;
-
-        this.emit(REMOVE_LINE, index, line, isLocal);
-        return;
-      }
-
-      if (op.li) {
-        const index = op.p[1];
-        const line = op.li;
-
-        this.emit(ADD_LINE, index, line, isLocal);
-        return;
-      }
-
-      if (op.lm) {
-        const oldIndex = op.p[1];
-        const newIndex = op.lm;
-
-        this.emit(REORDER_LINE, oldIndex, newIndex, isLocal);
-        return;
-      }
-
-      if (op.od && (!op.li || op.li.length === 0)) {
-        this.emit(REMOVE_ALL_LINES, isLocal);
-        return;
-      }
-
-      if (op.oi) {
-        this.emit(REPLACE_ALL_LINES, op.oi, isLocal);
-        return;
-      }
-    });
+    }
   }
 }

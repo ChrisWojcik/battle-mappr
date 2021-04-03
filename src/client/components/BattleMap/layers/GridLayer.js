@@ -1,88 +1,78 @@
+import { SET_ZOOM } from '@/stores/ToolbarStore';
+import { RESIZE, DRAG_MOVE } from '@/components/BattleMap';
+
 const GRID_SIZE = 40;
 
 export default class GridLayer {
-  constructor(el, stage, toolbarStore) {
-    this._$el = el;
-    this._stage = stage;
+  constructor(canvas, battleMap, toolbarStore) {
+    this._$el = canvas;
+    this._battleMap = battleMap;
     this._toolbarStore = toolbarStore;
 
-    this._devicePixelRatio = window.devicePixelRatio || 1;
-
-    this._canvas = document.createElement('canvas');
-    this._ctx = this._canvas.getContext('2d');
+    this._ctx = canvas.getContext('2d');
     this._ctx.imageSmoothingEnabled = false;
-    this._$el.insertBefore(this._canvas, this._$el.firstChild);
 
-    this._gridCenter = {
-      x: this._$el.offsetWidth / 2,
-      y: this._$el.offsetHeight / 2,
-    };
-
-    this._width = 0;
-    this._height = 0;
+    this._resolution = window.devicePixelRatio || 1;
 
     this._isDrawing = false;
     this._raf = null;
 
-    this.draw = this.draw.bind(this);
-    this.resize = this.resize.bind(this);
-    this._drawGrid = this._drawGrid.bind(this);
+    this._requestDraw = this._requestDraw.bind(this);
+    this._draw = this._draw.bind(this);
+    this._onResize = this._onResize.bind(this);
 
-    this.resize();
+    this._battleMap.on(RESIZE, this._onResize);
+    this._battleMap.on(DRAG_MOVE, this._requestDraw);
+    this._toolbarStore.on(SET_ZOOM, this._requestDraw);
+
+    this._onResize();
   }
 
-  resize() {
-    const width = this._$el.offsetWidth;
-    const height = this._$el.offsetHeight;
+  _onResize() {
+    const width = this._battleMap.width;
+    const height = this._battleMap.height;
 
-    this._width = width * this._devicePixelRatio;
-    this._height = height * this._devicePixelRatio;
+    this._ctx.canvas.width = width * this._resolution;
+    this._ctx.canvas.height = height * this._resolution;
 
-    this._canvas.width = this._width;
-    this._canvas.height = this._height;
+    this._$el.style.width = width + 'px';
+    this._$el.style.height = height + 'px';
 
-    this._canvas.style.width = width + 'px';
-    this._canvas.style.height = height + 'px';
-
-    this.draw(true);
+    this._requestDraw(true);
   }
 
-  draw(force) {
+  _requestDraw(force) {
     if (force) {
       cancelAnimationFrame(this._raf);
-      this._drawing = true;
-      this._drawGrid();
+      this._isDrawing = true;
+      this._draw();
+      this._isDrawing = false;
     } else {
       if (!this._isDrawing) {
         this._isDrawing = true;
-        this._raf = requestAnimationFrame(this._drawGrid);
+        this._raf = requestAnimationFrame(() => {
+          this._draw();
+          this._isDrawing = false;
+        });
       }
     }
   }
 
-  _drawGrid() {
-    this._ctx.clearRect(0, 0, this._width, this._height);
+  _draw() {
     this._ctx.canvas.width = this._ctx.canvas.width;
 
     const scale = this._toolbarStore.getZoom();
-    const absoluteX = this._stage.getAbsolutePosition().x / scale;
-    const absoluteY = this._stage.getAbsolutePosition().y / scale;
-    const scaledWidth = this._width / scale;
-    const scaledHeight = this._height / scale;
-
-    // offsets relative to the original center point
-    let centerX = this._gridCenter.x + absoluteX;
-    let centerY = this._gridCenter.y + absoluteY;
+    const centerX = -this._battleMap.x / scale;
+    const centerY = -this._battleMap.y / scale;
+    const scaledWidth = this._ctx.canvas.width / scale;
+    const scaledHeight = this._ctx.canvas.height / scale;
 
     // starting from the new offset center find the x/y coordinates of the first
     // set of grid lines that need to be drawn beyond the top/left edge of the canvas
     let START_X = -1 * (Math.ceil(centerX / GRID_SIZE) * GRID_SIZE - centerX);
     let START_Y = -1 * (Math.ceil(centerY / GRID_SIZE) * GRID_SIZE - centerY);
 
-    this._ctx.scale(
-      scale * this._devicePixelRatio,
-      scale * this._devicePixelRatio
-    );
+    this._ctx.scale(scale * this._resolution, scale * this._resolution);
 
     this._ctx.beginPath();
     this._ctx.lineWidth = 2;
@@ -127,7 +117,5 @@ export default class GridLayer {
     }
 
     this._ctx.stroke();
-
-    this._isDrawing = false;
   }
 }
