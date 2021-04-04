@@ -129,6 +129,7 @@ export default class BattleMap extends EventEmitter {
 
   _onTouchStart(e) {
     e.preventDefault();
+    this._$el.focus();
 
     if (this._currentGesture) {
       return;
@@ -145,6 +146,7 @@ export default class BattleMap extends EventEmitter {
 
   _onMouseDown(e) {
     e.preventDefault();
+    this._$el.focus();
 
     if (this._toolbarStore.getActiveTool() === 'pan') {
       this._onDragStart(e);

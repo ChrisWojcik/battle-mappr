@@ -33,7 +33,12 @@
       border-left-width: 6px;
     }
 
-    &:hover,
+    @media (hover: hover) {
+      &:hover {
+        background-color: lighten($black-hover, 15%);
+      }
+    }
+
     &:focus {
       outline: 0;
       background-color: lighten($black-hover, 15%);

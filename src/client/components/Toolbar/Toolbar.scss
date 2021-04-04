@@ -22,7 +22,12 @@
     cursor: pointer;
     z-index: 1;
 
-    &:hover,
+    @media (hover: hover) {
+      &:hover {
+        background: $black-hover;
+      }
+    }
+
     &:focus {
       background: $black-hover;
     }
@@ -36,7 +41,12 @@
       background: $red;
       border-bottom-color: $red;
 
-      &:hover,
+      @media (hover: hover) {
+        &:hover {
+          background: $red-hover;
+        }
+      }
+
       &:focus {
         background: $red-hover;
       }
