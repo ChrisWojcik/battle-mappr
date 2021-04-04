@@ -12,11 +12,12 @@ import {
 } from '@/components/BattleMap';
 
 export default class DrawingLayer {
-  constructor(canvas, battleMap, toolbarStore, layerStore) {
+  constructor(canvas, battleMap, toolbarStore, layerStore, undoManager) {
     this._$el = canvas;
     this._battleMap = battleMap;
     this._toolbarStore = toolbarStore;
     this._layerStore = layerStore;
+    this._undoManager = undoManager;
 
     this._ctx = canvas.getContext('2d');
     this._ctx.imageSmoothingEnabled = false;
@@ -218,10 +219,7 @@ export default class DrawingLayer {
       this._currentLine.points.push(e.x + 0.0000001, e.y + 0.0000001);
     }
 
-    this._layerStore.addLine(
-      this._layerStore.getAllLines().length,
-      this._currentLine
-    );
+    this._layerStore.addLine(this._currentLine);
 
     this._currentLine = null;
     this._requestDraw();

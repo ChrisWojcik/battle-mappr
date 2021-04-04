@@ -7,7 +7,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npm run clean && concurrently --kill-others \"npm run watch:dev\" \"npm run serve:dev\"",
+    "dev": "npm run clean && npm run svg-sprite && concurrently --kill-others \"npm run watch:dev\" \"npm run serve:dev\"",
     "build:dev": "npm run svg-sprite && npm run clean && webpack --mode=development --config ./webpack.config.js",
     "watch:dev": "webpack --mode=development --watch --config ./webpack.config.js",
     "serve:dev": "nodemon --watch src/server -r dotenv/config ./src/server/index.js",

@@ -23,12 +23,12 @@
     z-index: 1;
 
     @media (hover: hover) {
-      &:hover {
+      &:hover:not([aria-disabled='true']) {
         background: $black-hover;
       }
     }
 
-    &:focus {
+    &:focus:not([aria-disabled='true']) {
       background: $black-hover;
     }
 
@@ -50,6 +50,11 @@
       &:focus {
         background: $red-hover;
       }
+    }
+
+    &[aria-disabled='true'] {
+      color: rgba($white, 0.4);
+      cursor: not-allowed;
     }
 
     svg {

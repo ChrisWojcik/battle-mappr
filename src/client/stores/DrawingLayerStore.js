@@ -8,10 +8,12 @@ export const LINES = 'drawing/LINES';
 const DRAWING = 'drawing';
 
 export default class DrawingLayerStore extends EventEmitter {
-  constructor(documentId) {
+  constructor(documentId, undoManager) {
     super();
 
     this._documentId = documentId;
+
+    this._undoManager = undoManager;
 
     this._handleOp = this._handleOp.bind(this);
     this._submitOp = this._submitOp.bind(this);
@@ -33,13 +35,19 @@ export default class DrawingLayerStore extends EventEmitter {
     return this._doc && this._doc.data ? this._doc.data[DRAWING] : [];
   }
 
-  addLine(index, line) {
-    this._submitOp([
-      {
-        p: [DRAWING, index],
-        li: line,
+  addLine(line) {
+    const index = this._doc.data[DRAWING].length;
+
+    this._handleAddLine(line, index);
+
+    this._undoManager.registerUndo(
+      () => {
+        this._handleRemoveLine(line);
       },
-    ]);
+      () => {
+        this._handleAddLine(line, index);
+      }
+    );
   }
 
   _init() {
@@ -56,6 +64,30 @@ export default class DrawingLayerStore extends EventEmitter {
       this.emit(LINES, this.getAllLines());
       this._doc.on('op', this._handleOp);
     });
+  }
+
+  _handleAddLine(line, index) {
+    this._submitOp([
+      {
+        p: [DRAWING, index],
+        li: line,
+      },
+    ]);
+  }
+
+  _handleRemoveLine(line) {
+    for (let i = this._doc.data[DRAWING].length - 1; i >= 0; i--) {
+      if (this._doc.data[DRAWING][i].id === line.id) {
+        this._submitOp([
+          {
+            p: [DRAWING, i],
+            ld: line,
+          },
+        ]);
+
+        break;
+      }
+    }
   }
 
   _submitOp(op) {

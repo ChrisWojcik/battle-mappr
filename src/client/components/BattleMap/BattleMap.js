@@ -4,6 +4,7 @@ import BrushCursor from '@/components/BrushCursor';
 import GridLayer from './layers/GridLayer';
 import DrawingLayer from './layers/DrawingLayer';
 import ToolbarStore, { SET_ACTIVE_TOOL, SET_ZOOM } from '@/stores/ToolbarStore';
+import UndoManager from '@/stores/UndoManager';
 import DrawingLayerStore from '@/stores/DrawingLayerStore';
 import throttle from '@/lib/utils/throttle';
 import debounce from '@/lib/utils/debounce';
@@ -39,8 +40,13 @@ export default class BattleMap extends EventEmitter {
     super();
 
     this._$el = document.querySelector('#map');
+
+    this._undoManager = new UndoManager();
     this._toolbarStore = new ToolbarStore();
-    this._drawingLayerStore = new DrawingLayerStore(documentId);
+    this._drawingLayerStore = new DrawingLayerStore(
+      documentId,
+      this._undoManager
+    );
 
     this._width = this._$el.offsetWidth;
     this._height = this._$el.offsetHeight;
@@ -78,7 +84,7 @@ export default class BattleMap extends EventEmitter {
     this._$el.addEventListener('mouseout', this._onMouseUp, false);
     this._$el.addEventListener('wheel', this._onWheel, false);
 
-    new Toolbar(this._toolbarStore);
+    new Toolbar(this._toolbarStore, this._undoManager);
     new BrushCursor(this._toolbarStore);
 
     const gridCanvas = document.createElement('canvas');
