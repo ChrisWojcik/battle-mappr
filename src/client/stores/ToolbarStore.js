@@ -21,8 +21,10 @@ const ERASER_SIZE_STORAGE_KEY = '__battle-mappr__eraser-size';
 const IDLE_TIMEOUT = 250;
 
 class ToolbarStore extends EventEmitter {
-  constructor() {
+  constructor(battleMap) {
     super();
+
+    this._battleMap = battleMap;
 
     this._activeTool = 'brush';
     this._zoom = 1;
@@ -74,6 +76,13 @@ class ToolbarStore extends EventEmitter {
   setZoom(zoom, center) {
     const oldZoom = this._zoom;
     const newZoom = clamp(zoom, MIN_ZOOM, MAX_ZOOM);
+
+    if (!center) {
+      center = {
+        clientX: this._battleMap.width / 2,
+        clientY: this._battleMap.height / 2,
+      };
+    }
 
     this._zoom = newZoom;
     this.emit(SET_ZOOM, newZoom, oldZoom, center);

@@ -37,6 +37,7 @@ export default class DrawingLayer {
     this._requestDraw = this._requestDraw.bind(this);
     this._draw = this._draw.bind(this);
     this._onResize = this._onResize.bind(this);
+    this._onZoom = this._onZoom.bind(this);
     this._onSetActiveTool = this._onSetActiveTool.bind(this);
     this._onPointerDown = this._onPointerDown.bind(this);
     this._onPointerMove = this._onPointerMove.bind(this);
@@ -44,7 +45,7 @@ export default class DrawingLayer {
     this._onPointerCancel = this._onPointerCancel.bind(this);
 
     this._toolbarStore.on(SET_ACTIVE_TOOL, this._onSetActiveTool);
-    this._toolbarStore.on(SET_ZOOM, this._requestDraw);
+    this._toolbarStore.on(SET_ZOOM, this._onZoom);
 
     this._layerStore.on(LOADED, this._onLoaded);
     this._layerStore.on(ERROR, this._onError);
@@ -66,6 +67,10 @@ export default class DrawingLayer {
     this._$el.style.width = width + 'px';
     this._$el.style.height = height + 'px';
 
+    this._requestDraw(true);
+  }
+
+  _onZoom() {
     this._requestDraw(true);
   }
 

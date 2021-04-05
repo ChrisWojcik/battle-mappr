@@ -1,5 +1,6 @@
 import EventEmitter from '@/lib/EventEmitter';
 import Toolbar from '@/components/Toolbar';
+import SecondaryToolbar from '@/components/SecondaryToolbar';
 import BrushCursor from '@/components/BrushCursor';
 import GridLayer from './layers/GridLayer';
 import DrawingLayer from './layers/DrawingLayer';
@@ -42,7 +43,7 @@ export default class BattleMap extends EventEmitter {
     this._$el = document.querySelector('#map');
 
     this._undoManager = new UndoManager();
-    this._toolbarStore = new ToolbarStore();
+    this._toolbarStore = new ToolbarStore(this);
     this._drawingLayerStore = new DrawingLayerStore(
       documentId,
       this._undoManager
@@ -85,6 +86,7 @@ export default class BattleMap extends EventEmitter {
     this._$el.addEventListener('wheel', this._onWheel, false);
 
     new Toolbar(this._toolbarStore, this._undoManager);
+    new SecondaryToolbar(this._toolbarStore);
     new BrushCursor(this._toolbarStore);
 
     const gridCanvas = document.createElement('canvas');

@@ -1,12 +1,16 @@
-.toolbar {
+.secondary-toolbar {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 9999;
-  width: 56px;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9998;
+  width: 32px;
   background: $black;
   color: $white;
   box-shadow: $toolbar-shadow;
+
+  @media (max-width: 1024px) {
+    display: none;
+  }
 
   &__button {
     position: relative;
@@ -16,8 +20,8 @@
     color: $white;
     border: none;
     border-bottom: 1px solid $black-hover;
-    width: 56px;
-    height: 56px;
+    width: 32px;
+    height: 32px;
     margin: 0;
     padding: 0;
     cursor: pointer;
@@ -42,21 +46,6 @@
       }
     }
 
-    &.active {
-      background: $red;
-      border-bottom-color: $red;
-
-      &:focus {
-        background: $red-hover;
-      }
-
-      @media (hover: hover) {
-        &:hover {
-          background: $red-hover;
-        }
-      }
-    }
-
     &[aria-disabled='true'] {
       color: rgba($white, 0.4);
       cursor: not-allowed;
@@ -64,12 +53,12 @@
 
     svg {
       position: absolute;
-      width: 28px;
-      height: 28px;
+      width: 16px;
+      height: 16px;
       top: 50%;
       left: 50%;
-      margin-top: -14px;
-      margin-left: -14px;
+      margin-top: -8px;
+      margin-left: -8px;
       fill: currentColor;
     }
   }

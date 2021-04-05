@@ -12,7 +12,6 @@ const Z_KEY = 90;
 export default class Toolbar {
   constructor(toolbarStore, undoManager) {
     this._$el = document.querySelector('#toolbar');
-    this._$map = document.querySelector('#map');
     this._$buttons = this._$el.querySelectorAll('.toolbar__button');
 
     this._toolbarStore = toolbarStore;

@@ -20,10 +20,11 @@ export default class GridLayer {
     this._requestDraw = this._requestDraw.bind(this);
     this._draw = this._draw.bind(this);
     this._onResize = this._onResize.bind(this);
+    this._onZoom = this._onZoom.bind(this);
 
     this._battleMap.on(RESIZE, this._onResize);
     this._battleMap.on(DRAG_MOVE, this._requestDraw);
-    this._toolbarStore.on(SET_ZOOM, this._requestDraw);
+    this._toolbarStore.on(SET_ZOOM, this._onZoom);
 
     this._onResize();
   }
@@ -38,6 +39,10 @@ export default class GridLayer {
     this._$el.style.width = width + 'px';
     this._$el.style.height = height + 'px';
 
+    this._requestDraw(true);
+  }
+
+  _onZoom() {
     this._requestDraw(true);
   }
 
